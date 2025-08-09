@@ -1,8 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
 import os
 import logging
-from typing import Dict, Any
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -16,19 +15,6 @@ CORS(app)  # Enable CORS support
 app.config['JSON_AS_ASCII'] = False  # Support Chinese JSON return
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
-# Import managers and routes
-from managers.tool_manager import ToolManager
-from routes.tools import tools_bp
-
-# Register blueprints
-app.register_blueprint(tools_bp, url_prefix='/api')
-
-# Initialize tool manager
-tool_manager = ToolManager()
-
-# Make tool manager globally available
-app.tool_manager = tool_manager
-
 # Health check endpoint
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -36,8 +22,7 @@ def health_check():
     return jsonify({
         'status': 'success',
         'message': 'API service is running normally',
-        'version': '1.0.0',
-        'available_tools': len(tool_manager.get_all_tools())
+        'version': '1.0.0'
     })
 
 # Root path endpoint
@@ -46,16 +31,11 @@ def root():
     """Root path endpoint that returns basic API information"""
     return jsonify({
         'name': 'Python Backend API Service',
-        'description': 'Universal Python backend API service supporting multiple tool calls',
+        'description': 'Universal Python backend API service',
         'version': '1.0.0',
         'endpoints': {
-            'health': '/api/health',
-            'tools_list': '/api/tools',
-            'tool_info': '/api/tools/{tool_name}',
-            'web_crawler': '/api/crawler?url={url}',
-            'generic_execute': '/api/execute?tool={tool_name}&{parameters}'
-        },
-        'available_tools': tool_manager.get_all_tools()
+            'health': '/api/health'
+        }
     })
 
 # Error handling
@@ -75,14 +55,6 @@ def internal_error(error):
         'code': 500
     }), 500
 
-@app.errorhandler(400)
-def bad_request(error):
-    return jsonify({
-        'status': 'error',
-        'message': 'Request parameter error',
-        'code': 400
-    }), 400
-
 # For Vercel deployment - expose the app object
 application = app
 
@@ -92,6 +64,5 @@ if __name__ == '__main__':
     debug = os.environ.get('DEBUG', 'False').lower() == 'true'
     
     logger.info(f"Starting Flask application, port: {port}, debug mode: {debug}")
-    logger.info(f"Available tools count: {len(tool_manager.get_all_tools())}")
     
     app.run(host='0.0.0.0', port=port, debug=debug)
