@@ -83,10 +83,8 @@ def bad_request(error):
         'code': 400
     }), 400
 
-# Handler required for Vercel deployment
-def handler(request):
-    """Vercel serverless function handler"""
-    return app(request.environ, request.start_response)
+# For Vercel deployment - expose the app object
+application = app
 
 if __name__ == '__main__':
     # Run in development environment
