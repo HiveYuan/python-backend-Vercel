@@ -14,32 +14,32 @@ load_dotenv()
 
 class WebCrawler(Tool):
     """
-    网页爬虫工具，支持从任何URL提取和分析网页内容
+    Web crawler tool that supports extracting and analyzing web content from any URL
     
-    功能特点：
-    - 智能网页内容抓取
-    - 自动转换为markdown格式
-    - 使用GPT-4o进行内容优化和提取
-    - 支持异步操作
-    - 处理各种网页类型和动态内容
+    Features:
+    - Intelligent web content extraction
+    - Automatic conversion to markdown format
+    - Content optimization and extraction using GPT-4o
+    - Supports asynchronous operations
+    - Handles various web page types and dynamic content
     """
     
     name: str = "web_crawler"
     description: str = """
-获取网页内容的工具，支持从任何URL提取和分析网页内容。
+Web content extraction tool that supports extracting and analyzing web content from any URL.
 
-功能特点：
-- 智能网页内容抓取
-- 自动转换为markdown格式
-- 使用GPT-4o进行内容优化和提取
-- 支持异步操作
-- 处理各种网页类型和动态内容
+Features:
+- Intelligent web content extraction
+- Automatic conversion to markdown format
+- Content optimization and extraction using GPT-4o
+- Supports asynchronous operations
+- Handles various web page types and dynamic content
 
-输入参数：
-- url: 要抓取的网页URL（必需）
+Input parameters:
+- url: The web page URL to crawl (required)
 
-返回：
-- 网页内容的markdown格式文本
+Returns:
+- Web content in markdown format
 """.strip()
 
     parameters: dict[str, Any] = {
@@ -47,14 +47,14 @@ class WebCrawler(Tool):
         "properties": {
             "url": {
                 "type": "string",
-                "description": "要抓取内容的网页URL",
+                "description": "The web page URL to extract content from",
                 "format": "uri"
             }
         },
         "required": ["url"]
     }
     
-    # OpenAI客户端实例
+    # OpenAI client instance
     openai_client: Optional[OpenAI] = None
     
     class Config:
@@ -64,26 +64,26 @@ class WebCrawler(Tool):
         super().__init__()
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise ValueError("未找到OPENAI_API_KEY环境变量，请检查.env文件")
+            raise ValueError("OPENAI_API_KEY environment variable not found, please check .env file")
         
         self.openai_client = OpenAI(api_key=api_key)
 
     def execute(self, **kwargs) -> str:
-        """同步执行方法，内部调用异步方法"""
+        """Synchronous execution method that internally calls the asynchronous method"""
         url = kwargs.get("url")
         if not url:
-            return "错误：未提供URL参数"
+            return "Error: URL parameter not provided"
         
         try:
             return asyncio.run(self.aexecute(url=url))
         except Exception as e:
-            return f"执行失败：{str(e)}"
+            return f"Execution failed: {str(e)}"
 
     async def aexecute(self, **kwargs) -> str:
-        """异步执行网页抓取"""
+        """Asynchronously execute web crawling"""
         url = kwargs.get("url")
         if not url:
-            return "错误：未提供URL参数"
+            return "Error: URL parameter not provided"
 
         try:
             if not url.startswith(('http://', 'https://')):
@@ -99,20 +99,20 @@ class WebCrawler(Tool):
                 )
 
                 if not result.success:
-                    return f"网页抓取失败：{result.error_message}"
+                    return f"Web crawling failed: {result.error_message}"
 
                 content = result.markdown
                 if not content or len(content.strip()) < 50:
-                    return "错误：未能提取到有效的网页内容"
+                    return "Error: Failed to extract valid web content"
 
                 optimized_content = await self._optimize_content_with_gpt(content, url)
                 return optimized_content
 
         except Exception as e:
-            return f"网页抓取错误：{str(e)}"
+            return f"Web crawling error: {str(e)}"
 
     async def _optimize_content_with_gpt(self, content: str, url: str) -> str:
-        """使用GPT-4o优化提取的内容"""
+        """Optimize extracted content using GPT-4o"""
         try:
             max_content_length = 80000
             if len(content) > max_content_length:
@@ -123,20 +123,20 @@ class WebCrawler(Tool):
                 messages=[
                     {
                         "role": "system",
-                        "content": """你是一个专业的内容提取助手。请从提供的网页内容中提取最重要和有用的信息，并以清晰的markdown格式返回。
+                        "content": """You are a professional content extraction assistant. Please extract the most important and useful information from the provided web content and return it in clear markdown format.
 
-要求：
-1. 保留标题结构和层次
-2. 提取主要内容和关键信息
-3. 移除广告、导航、版权声明等无关内容
-4. 保持内容的逻辑性和可读性
-5. 如果是新闻文章，保留标题、时间、作者、正文
-6. 如果是产品页面，保留产品名称、描述、规格等
-7. 使用中文回复（除非原内容是其他语言）"""
+Requirements:
+1. Preserve title structure and hierarchy
+2. Extract main content and key information
+3. Remove ads, navigation, copyright notices and other irrelevant content
+4. Maintain logical and readable content
+5. For news articles, retain title, date, author, and body text
+6. For product pages, retain product name, description, specifications, etc.
+7. Respond in the same language as the original content"""
                     },
                     {
                         "role": "user", 
-                        "content": f"请优化以下从网页 {url} 提取的内容：\n\n{content}"
+                        "content": f"Please optimize the following content extracted from webpage {url}:\n\n{content}"
                     }
                 ],
                 temperature=0.3,
@@ -147,4 +147,4 @@ class WebCrawler(Tool):
             return optimized_content or content
 
         except Exception as e:
-            return f"内容优化失败，返回原始内容：\n\n{content}\n\n错误：{str(e)}"
+            return f"Content optimization failed, returning original content:\n\n{content}\n\nError: {str(e)}"

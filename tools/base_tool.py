@@ -5,9 +5,9 @@ from pydantic import BaseModel
 
 class Tool(ABC, BaseModel):
     """
-    抽象基类，定义所有工具的基本接口
+    Abstract base class that defines the basic interface for all tools
     
-    所有具体的工具都应该继承这个基类并实现execute方法
+    All concrete tools should inherit from this class and implement the execute method
     """
     
     name: str
@@ -20,22 +20,22 @@ class Tool(ABC, BaseModel):
     @abstractmethod
     def execute(self, **kwargs) -> str:
         """
-        执行工具的主要功能
+        Execute the main functionality of the tool
         
         Args:
-            **kwargs: 工具执行所需的参数
+            **kwargs: Parameters required for tool execution
             
         Returns:
-            str: 工具执行的结果
+            str: The result of tool execution
         """
         pass
     
     def get_schema(self) -> Dict[str, Any]:
         """
-        返回工具的JSON Schema
+        Return the JSON Schema of the tool
         
         Returns:
-            Dict[str, Any]: 工具的schema信息
+            Dict[str, Any]: The schema information of the tool
         """
         return {
             "name": self.name,
@@ -45,13 +45,13 @@ class Tool(ABC, BaseModel):
     
     def validate_parameters(self, **kwargs) -> bool:
         """
-        验证传入的参数是否符合要求
+        Validate if the passed parameters meet the requirements
         
         Args:
-            **kwargs: 要验证的参数
+            **kwargs: Parameters to validate
             
         Returns:
-            bool: 参数是否有效
+            bool: Whether the parameters are valid
         """
         required_params = self.parameters.get("required", [])
         
