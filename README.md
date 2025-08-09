@@ -1,142 +1,126 @@
 # Python Backend API Service
 
-A universal Python backend API service based on the Flask framework, supporting deployment to the Vercel platform.
+A minimal Python backend API service based on Flask framework, optimized for Vercel deployment.
 
 ## Features
 
-- 🚀 RESTful API based on Flask
-- 🧩 Modular tool system with dynamic loading support
-- 🌐 Built-in web crawler tool with GPT-4o content optimization
-- 📦 Ready-to-use Vercel deployment configuration
-- 🔧 Easily extensible architecture design
+- 🚀 Simple RESTful API based on Flask
+- ⚡ Lightweight with minimal dependencies
+- 📦 Optimized for Vercel deployment
+- 🔍 Health check endpoint for monitoring
 
 ## Project Structure
 
 ```
 python-backend-Vercel/
-├── app.py                 # Flask application main file
-├── vercel.json           # Vercel deployment configuration
-├── requirements.txt      # Python dependencies
-├── .env.example         # Environment variables template
-├── managers/            # Manager modules
-│   └── tool_manager.py  # Tool manager
-├── routes/              # API routes
-│   └── tools.py        # Tool-related routes
-└── tools/               # Tool modules
-    ├── base_tool.py    # Tool base class
-    └── web_crawler.py  # Web crawler tool
+├── app.py              # Flask application main file
+├── requirements.txt    # Python dependencies (minimal)
+├── vercel.json        # Vercel deployment configuration  
+└── README.md          # Project documentation
 ```
 
 ## Quick Start
 
-### 1. Environment Configuration
+### 1. Local Development
 
 ```bash
-# Copy environment variables template
-cp .env.example .env
+# Clone the repository
+git clone <your-repo-url>
+cd python-backend-Vercel
 
-# Edit environment variables, set your OpenAI API key
-# OPENAI_API_KEY=your_openai_api_key_here
-```
-
-### 2. Install Dependencies
-
-```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 3. Local Development
-
-```bash
+# Run locally
 python app.py
 ```
 
 The service will start at http://localhost:5000
 
-### 4. Deploy to Vercel
+### 2. Deploy to Vercel
 
+#### Method 1: Via GitHub (Recommended)
+1. Push your code to GitHub
+2. Connect your GitHub repository to Vercel
+3. Vercel will automatically deploy
+
+#### Method 2: Via Vercel CLI
 ```bash
 # Install Vercel CLI
 npm install -g vercel
 
 # Deploy
-vercel deploy
+vercel deploy --prod
 ```
 
 ## API Endpoints
 
-### Basic Endpoints
+### Available Endpoints
 
 - `GET /` - Service information
 - `GET /api/health` - Health check
 
-### Tool Endpoints
-
-- `GET /api/tools` - Get all available tools
-- `GET /api/tools/{tool_name}` - Get specific tool information
-- `GET /api/crawler` - Web crawler interface
-- `GET /api/execute` - Generic tool execution interface
-- `GET /api/tools/{tool_name}/schema` - Get tool parameter schema
-
 ### Usage Examples
 
-#### Get all tools
+#### Service Information
 ```bash
-curl http://localhost:5000/api/tools
+curl https://your-app.vercel.app/
 ```
 
-#### Execute web crawler
-```bash
-# Method 1: Using dedicated crawler interface
-curl "http://localhost:5000/api/crawler?url=https://example.com"
-
-# Method 2: Using generic execution interface
-curl "http://localhost:5000/api/execute?tool=web_crawler&url=https://example.com"
+Response:
+```json
+{
+  "name": "Python Backend API Service",
+  "description": "Universal Python backend API service",
+  "version": "1.0.0",
+  "endpoints": {
+    "health": "/api/health"
+  }
+}
 ```
 
-#### Other tool execution examples
+#### Health Check
 ```bash
-# Generic tool execution format
-curl "http://localhost:5000/api/execute?tool=tool_name&param1=value1&param2=value2"
+curl https://your-app.vercel.app/api/health
 ```
 
-## Adding New Tools
+Response:
+```json
+{
+  "status": "success",
+  "message": "API service is running normally",
+  "version": "1.0.0"
+}
+```
 
-1. Create a new tool file in the `tools/` directory
-2. Inherit from the `Tool` base class and implement the `execute` method
-3. The tool will be automatically discovered and registered
+## Dependencies
 
-### Example Tool
+- **Flask 3.0.0** - Web framework
+- **Flask-CORS 4.0.0** - Cross-Origin Resource Sharing support
+
+## Deployment Notes
+
+- **Package Size**: Optimized to stay under Vercel's 250MB limit
+- **Runtime**: Python 3.9+ (automatically detected by Vercel)
+- **Cold Start**: Fast startup due to minimal dependencies
+
+## Extending the API
+
+To add new endpoints, simply add new routes to `app.py`:
 
 ```python
-from .base_tool import Tool
-
-class MyTool(Tool):
-    name: str = "my_tool"
-    description: str = "My custom tool"
-    parameters: dict = {
-        "type": "object",
-        "properties": {
-            "param1": {
-                "type": "string",
-                "description": "Parameter 1 description"
-            }
-        },
-        "required": ["param1"]
-    }
-    
-    def execute(self, **kwargs) -> str:
-        param1 = kwargs.get("param1")
-        return f"Execution result: {param1}"
+@app.route('/api/new-endpoint', methods=['GET'])
+def new_endpoint():
+    return jsonify({
+        'message': 'New endpoint working!'
+    })
 ```
 
-## Technology Stack
+## Error Handling
 
-- **Backend**: Flask 3.0
-- **Tool Management**: Custom Tool system
-- **Deployment**: Vercel Python Runtime
-- **Web Scraping**: crawl4ai
-- **AI**: OpenAI GPT-4o
+The API includes built-in error handling for:
+- 404 - Endpoint not found
+- 500 - Internal server error
 
 ## License
 
